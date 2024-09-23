@@ -1,5 +1,7 @@
 package gitlet;
 
+import java.io.File;
+
 /** Driver class for Gitlet, a subset of the Git version-control system.
  *  @author TODO
  */
@@ -13,6 +15,13 @@ public class Main {
         String firstArg = args[0];
         switch(firstArg) {
             case "init":
+                File GitDirectory = new File(".git");
+                if(GitDirectory.exists()){
+                    System.out.println("A Gitlet version-control system already exists in the current directory.");
+                }else{
+                    GitDirectory.mkdir();
+                    // initialize Gitlet version-control
+                }
                 // TODO: handle the `init` command
                 break;
             case "add":
