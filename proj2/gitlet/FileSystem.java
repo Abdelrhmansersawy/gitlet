@@ -79,5 +79,11 @@ public class FileSystem implements Serializable {
          */
         return GITLET_DIR.exists();
     }
-
+    public static boolean exist(String absolutePath){
+        /*
+        Check if the file with absolute path exist or not
+         */
+        File F = new File(absolutePath);
+        return F.exists();
+    }
 }
