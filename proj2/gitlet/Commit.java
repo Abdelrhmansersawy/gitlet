@@ -1,28 +1,25 @@
 package gitlet;
 import java.io.*;
-import java.util.Scanner;
-import java.util.Vector;
-import java.time.LocalTime;
 import java.util.Objects;
-import java.nio.file.Files;
-import java.nio.file.Path;
+import java.util.Vector;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 
 import static gitlet.Utils.sha1;
 
-public class Commit {
-     private LocalTime timeStamp; // Time stamp of created object
-     private String branchName; // Current branch name
-     private String message; // User message
-     private Vector<String> parentCommit; // Parents SHA's commits
-     private Vector<Blob> blobs; // Current Blobs
-     private Log changes;
-     private Vector <String>addedFiles;
-     private Vector<String>modifiedFiles;
-     public Commit(){
-         /*
-         Initial constructor to initialize commit to 00:00:00 UTC
-          */
-        timeStamp = LocalTime.MIDNIGHT;
+
+class Commit implements Serializable{
+    private final String timeStamp;
+    private final String branchName;
+    private final String message;
+    private final Vector<String> parentCommit;
+    private Vector<Blob> blobs;
+    private Vector <String>addedFiles;
+    private Vector<String>modifiedFiles;
+    public Commit(){
+        timeStamp = getInitialTime();
         message = "initial commit.";
         branchName = "master";
         parentCommit = new Vector<>();
@@ -30,30 +27,28 @@ public class Commit {
         modifiedFiles = new Vector<>();
         parentCommit.add(null);
         blobs = new Vector<>();
-     }
-     public Commit(String message, String parentSHA , String branchName , Vector<String> blobs){
-         /*
-
-          */
-         this.timeStamp = LocalTime.now();
-         this.message = message;
-         this.branchName = branchName;
-         parentCommit = new Vector<>();
-         addedFiles = new Vector<>();
-         modifiedFiles = new Vector<>();
-         parentCommit.add(parentSHA);
-         blobs = new Vector<>();
-     }
-     // paremetarized
-     public Commit(String message , String parent1SHA , String parent2SHA, Vector<String>blobs , String branchName){
-         this.timeStamp = LocalTime.now();
-         this.message = message;
-         this.branchName = branchName;
-         parentCommit = new Vector<>();
-         parentCommit.add(parent1SHA);
-         parentCommit.add(parent2SHA);
-         blobs = new Vector<>();
-     }
+    }
+    // paremetarized constructor to set a new commit
+    public Commit(String message, String parentSHA , Vector<String> blobs , String branchName){
+        this.timeStamp = getCurrentTime();
+        this.message = message;
+        this.branchName = branchName;
+        parentCommit = new Vector<>();
+        addedFiles = new Vector<>();
+        modifiedFiles = new Vector<>();
+        parentCommit.add(parentSHA);
+        blobs = new Vector<>();
+    }
+    // paremetarized constructor to merge two commits
+    public Commit(String message , String parent1SHA , String parent2SHA, Vector<String>blobs , String branchName){
+        this.timeStamp = getCurrentTime();
+        this.message = message;
+        this.branchName = branchName;
+        parentCommit = new Vector<>();
+        parentCommit.add(parent1SHA);
+        parentCommit.add(parent2SHA);
+        blobs = new Vector<>();
+    }
     // to get the SHA1 of the object
     String getCommitSHA(){
         return sha1(timeStamp,branchName,message);
@@ -65,15 +60,15 @@ public class Commit {
         for(int i = 0 ;i < files.size();i++)
         {
             // transfer each bath in staging area to blob
-            Blob blob = Blob.restoreObject(files.get(i));
+            Blob blob = Blob.read(files.get(i));
             boolean isExist = false ;
             for(int j = 0 ;j < parent.blobs.size();j++)
             {
                 // if the bath exist it means that the file is modified or it is not modified
-                if(Objects.equals(blob.getBlobPath(), parent.blobs.get(j).getBlobPath()))
+                if(Objects.equals(blob.getFileName(), parent.blobs.get(j).getFileName()))
                 {
                     // if the content is different so it is a modified file
-                    if(!Objects.equals(blob.getSHA(), parent.blobs.get(j).getSHA()))
+                    if(!Objects.equals(blob.getBlobName(), parent.blobs.get(j).getBlobName()))
                     {
                         modifiedFiles.add(blob.getFileName());
                         blobs.set(i , blob);
@@ -90,5 +85,28 @@ public class Commit {
             }
         }
     }
-
+    private String getInitialTime()
+    {
+        ZonedDateTime epochTime = ZonedDateTime.ofInstant(Instant.ofEpochSecond(0), ZoneId.of("UTC"));
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss z");
+        return epochTime.format(formatter);
+    }
+    private String getCurrentTime()
+    {
+        ZonedDateTime currentTime = ZonedDateTime.now(ZoneId.of("UTC"));
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm:ss z, EEEE, d MMMM yyyy");
+        return currentTime.format(formatter);
+    }
+    public void write(){
+         /*
+            Write a Blob through serializing the object through using its SHA
+         */
+        FileSystem.SerializingObject(getCommitSHA() , this);
+    }
+    public static Commit read(String SHA){
+        /*
+            Read a created Commit through deserializing the object through using its SHA
+         */
+        return FileSystem.DeserializingObject(SHA , Commit.class);
+    }
 }

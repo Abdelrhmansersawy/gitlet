@@ -1,37 +1,27 @@
 package gitlet;
-
-import java.io.File;
 import java.io.Serializable;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.io.IOException;
 import java.util.Objects;
 
-import static gitlet.SystemFile.*;
 import static gitlet.Utils.*;
 
-public class Blob implements Serializable {
-    private String fileName; // Store the Name of tracked file
-    private String content; // Store the content of file
-    private String blobPath;
-    private final String  SLASH = System.getProperty("file.separator");
+public class Blob  implements Serializable{
+    private final String fileName; // Store the Name of tracked file
+    private final String content; // Store the content of file
+    private final String BlobName;
     public Blob(){
-        fileName = null;
-        content = null;
-        blobPath = null;
+        this.fileName = null;
+        this.content = null;
+        this.BlobName = null;
     }
-    public Blob(String path){
+    public Blob(String absolutePath){
         /*
         Initialize a blob with specific path file
          */
-        try {
-            this.content = Files.readString(Path.of(path));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        this.fileName = path;
-        this.blobPath = ".git" + SLASH + getSHA();
+        this.content = FileSystem.readFile(absolutePath);
+        this.fileName = absolutePath;
+        this.BlobName = getBlobSHA();
     }
+
 
     public String getFileName(){
         return this.fileName;
@@ -39,40 +29,25 @@ public class Blob implements Serializable {
     public String getContent(){
         return this.content;
     }
-    public String getBlobPath(){
-        return this.blobPath;
-    }
-    String getSHA(){
-        /*
-            Return the SHA1 of the current Blob
-         */
-        return sha1(fileName, content);
-    }
-    private void createBlob(){
+    public String getBlobName(){ return this.BlobName; }
+    private String getBlobSHA() { return sha1(fileName, content); }
+    public void write(){
          /*
-            Create a new Blob through serializing the object
+            Write a Blob through serializing the object through using its SHA
          */
-        File outFile = new File(blobPath);
-        writeObject(outFile, this);
-
-        SerializedObject(blobPath , this);
+        FileSystem.SerializingObject(getBlobSHA() , this);
     }
-    public static Blob restoreObject(String SHA){
+    public static Blob read(String SHA){
         /*
-            Restore a created Blob through deserializing the object
+            Read a created Blob through deserializing the object through using its SHA
          */
-        File inFile = new File(SHA);
-        if(!inFile.exists()){
-            System.out.println("File is not exist");
-            return null;
-        }
-        return DeserializedObject(SHA , Blob.class);
+        return FileSystem.DeserializingObject(SHA , Blob.class);
     }
     public Boolean equals(Blob other){
         /*
             Compare two blob if they are equal or not
          */
-        return Objects.equals(other.getSHA(), this.getSHA());
+        return Objects.equals(other.getBlobSHA(), this.getBlobSHA());
     }
 
 }

@@ -6,7 +6,13 @@
 
 ### Blob
 
-1. String path --- contains the directory path of the tracked file
+1. `Blob(absolutePath)` --- Initialize a blob with a content of file with path `absolutePath`
+2. `String getFileName()` --- get the absolute path of the blob
+3. `String getContent()` --- get the file content of the blob
+4. `String getBlobName()` --- Return the blob name
+5. `String getSHA()` ---  Return the SHA1 of the  Blob
+6. `void write()` --- Write a Blob
+7. `Boolean equals(Blob other)` --- compare two blob if they are equal or not
 
 ### Commit
 
@@ -19,6 +25,24 @@
 4. Changes log --- store the change that happen into working directory.
 
 5. Branch Name --- Store the branch where this is commit is created
+
+### FileSystem
+
+#### About: Contain all function specified dealing with files
+
+1. `String getCWD()` --- return the current working directory
+
+2. `String getAbsolutePath(relativePath)` --- convert from relative path to absolute path
+
+3. `void SerializingObject(fileName , T object)` --- serializing object with a file name `fileName`
+
+4. `T DeserializingObject(fileName , objectType)` --- deserializing object with a file name `fileName` and return it as object
+
+5. `String readFile(string absolutePath)` --- read the content of file
+
+6. `Boolean initGit()` --- Initialize Git version-control system
+
+7. `Boolean checkGit()` --- check if the Git version-control sytsem is intialized or not
 
 ### Branches
 
