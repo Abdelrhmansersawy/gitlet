@@ -7,6 +7,7 @@ import java.nio.file.Path;
 import java.io.IOException;
 import java.util.Objects;
 
+import static gitlet.SystemFile.*;
 import static gitlet.Utils.*;
 
 public class Blob implements Serializable {
@@ -14,7 +15,11 @@ public class Blob implements Serializable {
     private String content; // Store the content of file
     private String blobPath;
     private final String  SLASH = System.getProperty("file.separator");
-    public Blob(){}
+    public Blob(){
+        fileName = null;
+        content = null;
+        blobPath = null;
+    }
     public Blob(String path){
         /*
         Initialize a blob with specific path file
@@ -26,6 +31,16 @@ public class Blob implements Serializable {
         }
         this.fileName = path;
         this.blobPath = ".git" + SLASH + getSHA();
+    }
+
+    public String getFileName(){
+        return this.fileName;
+    }
+    public String getContent(){
+        return this.content;
+    }
+    public String getBlobPath(){
+        return this.blobPath;
     }
     String getSHA(){
         /*
@@ -39,22 +54,25 @@ public class Blob implements Serializable {
          */
         File outFile = new File(blobPath);
         writeObject(outFile, this);
+
+        SerializedObject(blobPath , this);
     }
-    public static Blob restoreObject(String path){
+    public static Blob restoreObject(String SHA){
         /*
             Restore a created Blob through deserializing the object
          */
-        File inFile = new File(path);
+        File inFile = new File(SHA);
         if(!inFile.exists()){
             System.out.println("File is not exist");
             return null;
         }
-        return readObject(inFile,Blob.class);
+        return DeserializedObject(SHA , Blob.class);
     }
-    public Boolean isEqual(Blob other){
+    public Boolean equals(Blob other){
         /*
             Compare two blob if they are equal or not
          */
         return Objects.equals(other.getSHA(), this.getSHA());
     }
+
 }
