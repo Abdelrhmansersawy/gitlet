@@ -51,10 +51,10 @@ public class Blob implements Serializable {
         }
         return readObject(inFile,Blob.class);
     }
-    public static Boolean isEqual(Blob other){
+    public Boolean isEqual(Blob other){
         /*
             Compare two blob if they are equal or not
          */
-        return Objects.equals(other.getSHA(), other.getSHA());
+        return Objects.equals(other.getSHA(), this.getSHA());
     }
 }
