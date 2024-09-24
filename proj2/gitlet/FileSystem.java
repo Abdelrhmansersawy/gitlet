@@ -25,26 +25,33 @@ public class FileSystem implements Serializable {
          */
         return getCWD() + SLASH + relativePath;
     }
+    public static String getFileName(String absolutePath){
+        File file = new File(absolutePath);
+        if(!file.exists()){
+            System.out.println("Can't found a file with absolute path " + absolutePath);
+            return null;
+        }
+        return file.getName();
+    }
     public static String getGitletPath(String fileName){
         /*
         Return the absolute path of a file inside ".gitlet"
          */
         return GITLET_PATH + SLASH + fileName;
     }
-    public static <T> void SerializingObject(String SHA, T object) {
+    public static <T> void SerializingObject(String fileName, T object) {
         /*
             Create a new serialized object through serializing it to a file.
         */
-        File outFile = new File(getGitletPath(SHA));
-        System.out.println(SHA);
+        File outFile = new File(getGitletPath(fileName));
 
         writeObject(outFile, (Serializable) object);
     }
-    public static <T extends Serializable> T DeserializingObject(String SHA, Class<T> objectType) {
+    public static <T extends Serializable> T DeserializingObject(String fileName, Class<T> objectType) {
         /*
             Restore a created object of type T through deserializing the object
          */
-        File inFile = new File(getGitletPath(SHA));
+        File inFile = new File(getGitletPath(fileName));
         if (!inFile.exists()) {
             System.out.println("File does not exist");
             return null;
@@ -71,6 +78,8 @@ public class FileSystem implements Serializable {
         if(!isCreated){
             // TODO: Throw expection can't create a directory with name .gitlet
         }
+        Commit initialCommit = new Commit();
+        Repository.init(initialCommit);
         return isCreated;
     }
     public static boolean checkGit(){
