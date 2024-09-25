@@ -96,6 +96,12 @@ public class Commit implements Serializable{
 //            }
 //        }
 //    }
+    public Commit createCommit(StagingArea curStagingArea , String message){
+        /*
+        In Create new commit with a current staging Area
+         */
+        return null;
+    }
     private String getInitialTime()
     {
         ZonedDateTime epochTime = ZonedDateTime.ofInstant(Instant.ofEpochSecond(0), ZoneId.of("UTC"));
