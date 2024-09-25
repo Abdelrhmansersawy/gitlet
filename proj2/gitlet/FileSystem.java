@@ -5,14 +5,28 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 import static gitlet.Utils.*;
 
 public class FileSystem implements Serializable {
     private static final String  SLASH = System.getProperty("file.separator");
     private static final String CWD = getCWD();
-    public static final File GITLET_DIR = join(CWD, ".gitlet");
-    public static final String GITLET_PATH = String.valueOf(join(CWD, ".gitlet"));
+    private static final File GITLET_DIR = join(CWD, ".gitlet");
+    private static final String GITLET_PATH = String.valueOf(join(CWD, ".gitlet"));
+    private static Map<String,String> DIRECTORY;
+
+    public FileSystem(){
+        DIRECTORY = new LinkedHashMap<>();
+        DIRECTORY.put("git" , GITLET_PATH);
+        DIRECTORY.put("object" , String.valueOf(join(GITLET_PATH, "objects")));
+        DIRECTORY.put("refr" , String.valueOf(join(GITLET_PATH, "refr")));
+        DIRECTORY.put("repo" , String.valueOf(join(GITLET_PATH, "refr" + SLASH + "main")));
+
+    }
+
     public static String getCWD(){
         /*
         Return the current working directory
@@ -33,25 +47,25 @@ public class FileSystem implements Serializable {
         }
         return file.getName();
     }
-    public static String getGitletPath(String fileName){
+    public static String getGitletPath(String fileName , String key){
         /*
         Return the absolute path of a file inside ".gitlet"
          */
-        return GITLET_PATH + SLASH + fileName;
+        return DIRECTORY.get(key) + SLASH + fileName;
     }
-    public static <T> void SerializingObject(String fileName, T object) {
+    public static <T> void SerializingObject(String fileName, T object , String key) {
         /*
             Create a new serialized object through serializing it to a file.
         */
-        File outFile = new File(getGitletPath(fileName));
+        File outFile = new File(getGitletPath(fileName , key));
 
         writeObject(outFile, (Serializable) object);
     }
-    public static <T extends Serializable> T DeserializingObject(String fileName, Class<T> objectType) {
+    public static <T extends Serializable> T DeserializingObject(String fileName, Class<T> objectType , String key) {
         /*
             Restore a created object of type T through deserializing the object
          */
-        File inFile = new File(getGitletPath(fileName));
+        File inFile = new File(getGitletPath(fileName,key));
         if (!inFile.exists()) {
             System.out.println("File does not exist");
             return null;
@@ -66,21 +80,25 @@ public class FileSystem implements Serializable {
         }
         return null;
     }
-    public static boolean initGit(){
+    public static void initGit(){
         /*
-        Initialize Git version-control system
+        Initialize Git version-control system for the first time
          */
-        if(GITLET_DIR.exists()){
-            System.out.println("A Gitlet version-control system already exists in the current directory.");
-            return  false;
+        try {
+            // Create ".gitlet" directory
+            if (GITLET_DIR.exists()) {
+                throw new IOException("A Gitlet version-control system already exists in the current directory.");
+            }
+
+            for( Map.Entry<String, String> entry : DIRECTORY.entrySet()){
+                File file = new File(entry.getValue());
+                if(!file.mkdir()){
+                    throw  new IOException("Can't create " + entry.getKey() + " with directory " + entry.getValue());
+                }
+            }
+        } catch (IOException e) {
+            System.err.println("Error: " + e.getMessage());
         }
-        boolean isCreated = GITLET_DIR.mkdir();
-        if(!isCreated){
-            // TODO: Throw expection can't create a directory with name .gitlet
-        }
-        Commit initialCommit = new Commit();
-        Repository.init(initialCommit);
-        return isCreated;
     }
     public static boolean checkGit(){
         /*

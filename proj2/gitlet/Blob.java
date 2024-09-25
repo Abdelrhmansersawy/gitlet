@@ -35,13 +35,13 @@ public class Blob  implements Serializable{
          /*
             Write a Blob through serializing the object through using its SHA
          */
-        FileSystem.SerializingObject(getBlobSHA() , this);
+        FileSystem.SerializingObject(getBlobSHA() , this , "object");
     }
     public static Blob read(String SHA){
         /*
             Read a created Blob through deserializing the object through using its SHA
          */
-        return FileSystem.DeserializingObject(SHA , Blob.class);
+        return FileSystem.DeserializingObject(SHA , Blob.class , "object");
     }
     public int compareTo(Blob other){
         return this.getBlobName().compareTo(other.getBlobName());

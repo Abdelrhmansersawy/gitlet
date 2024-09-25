@@ -10,7 +10,7 @@ import java.time.format.DateTimeFormatter;
 import static gitlet.Utils.sha1;
 
 
-class Commit implements Serializable{
+public class Commit implements Serializable{
     private final String timeStamp;
     private final String branchName;
     private final String message;
@@ -65,12 +65,12 @@ class Commit implements Serializable{
             for(int j = 0 ;j < parent.blobs.size();j++)
             {
                 // if the bath exist it means that the file is modified or it is not modified
-                if(Objects.equals(blob.getFileName(), parent.blobs.get(j).getFileName()))
+                if(Objects.equals(blob.getBlobName(), parent.blobs.get(j).getBlobName()))
                 {
                     // if the content is different so it is a modified file
                     if(!Objects.equals(blob.getBlobName(), parent.blobs.get(j).getBlobName()))
                     {
-                        modifiedFiles.add(blob.getFileName());
+                        modifiedFiles.add(blob.getBlobName());
                         blobs.set(i , blob);
                     }
                     isExist = true ;
@@ -80,7 +80,7 @@ class Commit implements Serializable{
             // if i don't find any file with that path that mean that it is a new file
             if(!isExist)
             {
-                addedFiles.add(blob.getFileName());
+                addedFiles.add(blob.getBlobName());
                 blobs.add(blob);
             }
         }
@@ -101,12 +101,12 @@ class Commit implements Serializable{
          /*
             Write a Blob through serializing the object through using its SHA
          */
-        FileSystem.SerializingObject(getCommitSHA() , this);
+        FileSystem.SerializingObject(getCommitSHA() , this , "object");
     }
     public static Commit read(String SHA){
         /*
             Read a created Commit through deserializing the object through using its SHA
          */
-        return FileSystem.DeserializingObject(SHA , Commit.class);
+        return FileSystem.DeserializingObject(SHA , Commit.class , "object");
     }
 }
