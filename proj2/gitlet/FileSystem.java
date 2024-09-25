@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -16,15 +15,17 @@ public class FileSystem implements Serializable {
     private static final String CWD = getCWD();
     private static final File GITLET_DIR = join(CWD, ".gitlet");
     private static final String GITLET_PATH = String.valueOf(join(CWD, ".gitlet"));
-    private static Map<String,String> DIRECTORY;
+    private static Map<String,File> DIRECTORY;
 
     public FileSystem(){
         DIRECTORY = new LinkedHashMap<>();
-        DIRECTORY.put("git" , GITLET_PATH);
-        DIRECTORY.put("object" , String.valueOf(join(GITLET_PATH, "objects")));
-        DIRECTORY.put("refr" , String.valueOf(join(GITLET_PATH, "refr")));
-        DIRECTORY.put("repo" , String.valueOf(join(GITLET_PATH, "refr" + SLASH + "main")));
-
+        DIRECTORY.put("git" , GITLET_DIR);
+        DIRECTORY.put("object" , join(DIRECTORY.get("git") , "object"));
+        DIRECTORY.put("refr" , join(DIRECTORY.get("git") , "refr"));
+        DIRECTORY.put("repo" , join(DIRECTORY.get("refr"), "repo") );
+        DIRECTORY.put("staging" , join(DIRECTORY.get("repo"), "staging") );
+        DIRECTORY.put("stagingForAddional" , join(DIRECTORY.get("staging"), "add") );
+        DIRECTORY.put("stagingForRemoval" , join(DIRECTORY.get("staging"), "rn") );
     }
 
     public static String getCWD(){
@@ -47,17 +48,17 @@ public class FileSystem implements Serializable {
         }
         return file.getName();
     }
-    public static String getGitletPath(String fileName , String key){
+    public static File getFromGit(String fileName , String key){
         /*
         Return the absolute path of a file inside ".gitlet"
          */
-        return DIRECTORY.get(key) + SLASH + fileName;
+        return join(DIRECTORY.get(key) , fileName);
     }
     public static <T> void SerializingObject(String fileName, T object , String key) {
         /*
             Create a new serialized object through serializing it to a file.
         */
-        File outFile = new File(getGitletPath(fileName , key));
+        File outFile = getFromGit(fileName , key);
 
         writeObject(outFile, (Serializable) object);
     }
@@ -65,7 +66,7 @@ public class FileSystem implements Serializable {
         /*
             Restore a created object of type T through deserializing the object
          */
-        File inFile = new File(getGitletPath(fileName,key));
+        File inFile = getFromGit(fileName , key);
         if (!inFile.exists()) {
             System.out.println("File does not exist");
             return null;
@@ -80,12 +81,13 @@ public class FileSystem implements Serializable {
         }
         return null;
     }
-    public static boolean deleteFile(String aboluteaPath){
-        File file = new File(aboluteaPath);
+    public static void deleteFile(String aboslutePath){
+        deleteFile(new File(aboslutePath));
+    }
+    public static void deleteFile(File file){
         if(file.exists()){
-            return file.delete();
+            file.delete();
         }
-        return true;
     }
     public static void initGit(){
         /*
@@ -97,8 +99,8 @@ public class FileSystem implements Serializable {
                 throw new IOException("A Gitlet version-control system already exists in the current directory.");
             }
 
-            for( Map.Entry<String, String> entry : DIRECTORY.entrySet()){
-                File file = new File(entry.getValue());
+            for( Map.Entry<String, File> entry : DIRECTORY.entrySet()){
+                File file = entry.getValue();
                 if(!file.mkdir()){
                     throw  new IOException("Can't create " + entry.getKey() + " with directory " + entry.getValue());
                 }

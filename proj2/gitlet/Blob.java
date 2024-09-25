@@ -31,17 +31,17 @@ public class Blob  implements Serializable{
     }
     public String getBlobName(){ return this.BlobName; }
     private String getBlobSHA() { return sha1(filePath, content); }
-    public void write(){
+    public void write(String key){
          /*
             Write a Blob through serializing the object through using its SHA
          */
-        FileSystem.SerializingObject(getBlobSHA() , this , "object");
+        FileSystem.SerializingObject(getBlobSHA() , this , key);
     }
-    public static Blob read(String SHA){
+    public static Blob read(String SHA , String key){
         /*
             Read a created Blob through deserializing the object through using its SHA
          */
-        return FileSystem.DeserializingObject(SHA , Blob.class , "object");
+        return FileSystem.DeserializingObject(SHA , Blob.class , key);
     }
     public int compareTo(Blob other){
         return this.getBlobName().compareTo(other.getBlobName());

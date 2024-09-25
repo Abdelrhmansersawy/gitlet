@@ -13,10 +13,10 @@ public class Main {
 
         // TODO: check if the git is already initialized deserializing the head object.
         new FileSystem();
-        Repository Repo = null;
+        Repository repository = null;
         if(FileSystem.checkGit()){
             // The Git version control system is already initialized
-            Repo = new Repository().read();
+            repository = new Repository().read();
         }
         if(args.length == 0){
             // TODO: what if args is empty?
@@ -32,7 +32,7 @@ public class Main {
                     return;
                 }
                 FileSystem.initGit();
-                Repo = new Repository(new Commit());
+                repository = new Repository(new Commit());
                 break;
             case "add":
                 // TODO: handle the `add [filename]` command
@@ -40,8 +40,6 @@ public class Main {
             // TODO: FILL THE REST IN
         }
 
-        // update Current Working Repository
-        assert Repo != null;
-        Repo.write();
+        repository.write();
     }
 }
