@@ -26,9 +26,9 @@ public class Repository implements Serializable {
     public Repository(Commit Head){
         this.Head = Head;
         this.Head.write();
-        write();
     }
     public void write(){
+        FileSystem.deleteFile(FileSystem.getGitletPath(Name , "repo"));
         FileSystem.SerializingObject(Name , this , "repo");
     }
     public Repository read(){

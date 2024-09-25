@@ -80,6 +80,13 @@ public class FileSystem implements Serializable {
         }
         return null;
     }
+    public static boolean deleteFile(String aboluteaPath){
+        File file = new File(aboluteaPath);
+        if(file.exists()){
+            return file.delete();
+        }
+        return true;
+    }
     public static void initGit(){
         /*
         Initialize Git version-control system for the first time
