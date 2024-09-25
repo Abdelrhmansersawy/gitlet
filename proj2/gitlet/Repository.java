@@ -31,6 +31,7 @@ public class Repository implements Serializable {
         write();
 
     }
+    public Commit getHead(){ return this.Head; }
     public void write(){
         FileSystem.deleteFile(FileSystem.getFromGit(Name , "repo"));
         FileSystem.SerializingObject(Name , this , "repo");
@@ -56,5 +57,15 @@ public class Repository implements Serializable {
             stagingArea.stage(fileName , currentBlob);
         }
     }
-
+    public void rm(String fileName){
+        if(!stagingArea.hashAddedFile(fileName) && !Head.isTracked(fileName)){
+            System.out.println("No reason to remove the file.");
+            return;
+        }
+        stagingArea.rm(fileName);
+    }
+    public void commit(String message){
+        Head = new Commit(stagingArea , message);
+        stagingArea.clear(); // TODO: Clear all blobs into (add , rm)
+    }
 }

@@ -35,11 +35,19 @@ public class Main {
                 repository = new Repository(new Commit());
                 break;
             case "add":
+                repository.add(args[1]);
                 // TODO: handle the `add [filename]` command
                 break;
+            case "rm":
+                repository.rm(args[1]);
+                break;
+            case "commit":
+                repository.commit(args[1]);
             // TODO: FILL THE REST IN
         }
 
         repository.write();
+
+        repository.getHead().print();
     }
 }

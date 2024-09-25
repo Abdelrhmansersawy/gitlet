@@ -14,15 +14,16 @@ public class StagingArea implements Serializable {
         stagingForAddional = new HashMap<>();
         stagingForRemoval = new HashMap<>();
         setHead(Head);
+        write();
     }
     public void setHead(Commit Head){this.Head = Head;}
     public Commit getHead(){ return Head; }
     public void write(){
-        FileSystem.deleteFile(FileSystem.getFromGit(Name , "repo"));
-        FileSystem.SerializingObject(Name , this , "repo");
+        FileSystem.deleteFile(FileSystem.getFromGit(Name , "staging"));
+        FileSystem.SerializingObject(Name , this , "staging");
     }
     public StagingArea read(){
-        return FileSystem.DeserializingObject(Name , StagingArea.class , "repo");
+        return FileSystem.DeserializingObject(Name , StagingArea.class , "staging");
     }
 
     public void stage(String fileName , Blob B){
@@ -39,7 +40,7 @@ public class StagingArea implements Serializable {
         stagingForAddional.remove(fileName);
     }
 
-    void rm(String fileName , Blob B){
+    void rm(String fileName){
             /*
             1. Unstage the file if it is currently staged for addition.
             2. If the file is tracked in the current commit, stage it for removal
@@ -48,8 +49,21 @@ public class StagingArea implements Serializable {
              */
         unstage(fileName);
         if(Head.isTracked(fileName)){
-            FileSystem.deleteFile(FileSystem.getAbsolutePath(fileName));
-            stagingForRemoval.put(fileName , B.getBlobName());
+            stagingForRemoval.put(fileName , Head.getBlobName(fileName));
         }
+        FileSystem.deleteFile(FileSystem.getAbsolutePath(fileName));
+
+    }
+
+    public boolean inRemoval(String file) {
+        return stagingForRemoval.containsKey(file);
+    }
+    public Map<String , String> getAddedfile() {
+        return stagingForAddional;
+    }
+
+    public boolean hashAddedFile(String fileName) {
+        return stagingForAddional.containsKey(fileName);
+
     }
 }
