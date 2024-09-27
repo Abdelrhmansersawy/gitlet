@@ -44,10 +44,18 @@ public class Main {
             case "commit":
                 repository.commit(args[1]);
             // TODO: FILL THE REST IN
+            case "global-log":
+                repository.getGlobalLogs();
+                break;
+            case "log":
+                repository.getLogs();
+                break;
+            case "find":
+                repository.find(arg[1]);
+                break;
+
         }
-
         repository.write();
-
         repository.getHead().print();
     }
 }

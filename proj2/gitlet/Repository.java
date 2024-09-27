@@ -23,9 +23,12 @@ public class Repository implements Serializable {
     private Commit Head;
     private final String Name = "main";
     private StagingArea stagingArea;
+    private Vector<logs>globalLogs;
     public Repository(){}
     public Repository(Commit Head){
         this.Head = Head;
+        this.globalLogs =new Vector<>();
+        this.globalLogs.add(new logs(Head));
         this.Head.write();
         stagingArea = new StagingArea(Head);
         write();
@@ -66,6 +69,37 @@ public class Repository implements Serializable {
     }
     public void commit(String message){
         Head = new Commit(stagingArea , message);
-        stagingArea.clear(); // TODO: Clear all blobs into (add , rm)
+        globalLogs.add(new logs(Head));
+        //stagingArea.clear(); // TODO: Clear all blobs into (add , rm)
+    }
+    public void getGlobalLogs()
+    {
+        for (int i = 0 ;i < this.globalLogs.size();i++)
+        {
+            globalLogs.get(i).printLog();
+        }
+    }
+    public void getLogs()
+    {
+        Commit currenCommit = new Commit();
+        currentCommit = Head ;
+        whlie(true)
+        {
+            System.out.println("=====");
+            currenCommit.print();
+            String ParentSHA = currenCommit.getParentSHA();
+            //currenCommit.write();
+            if(ParentSHA == null)
+                break;
+            currenCommit = Commit.read(ParentSHA);
+        }
+    }
+    public void find(String message)
+    {
+        for (int i = 0 ;i < globalLogs.size();i++)
+        {
+            if(globalLogs.get(i).getMessage() == message)
+                globalLogs.get(i).printLog();
+        }
     }
 }

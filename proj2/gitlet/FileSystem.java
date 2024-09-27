@@ -16,7 +16,6 @@ public class FileSystem implements Serializable {
     private static final File GITLET_DIR = join(CWD, ".gitlet");
     private static final String GITLET_PATH = String.valueOf(join(CWD, ".gitlet"));
     private static Map<String,File> DIRECTORY;
-
     public FileSystem(){
         DIRECTORY = new LinkedHashMap<>();
         DIRECTORY.put("git" , GITLET_DIR);

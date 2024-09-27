@@ -53,11 +53,10 @@ public class Commit implements Serializable{
     public boolean isTracked(String fileName){
         return blobs.containsKey(fileName);
     }
-    private String getCommitSHA(){
+    public String getCommitSHA(){
         // to get the SHA1 of the object
         return sha1(timeStamp,branchName,message);
     }
-
     public Map<String , String > getBlobs(){ return this.blobs; };
     public String getBlobName(String fileName){
         assert blobs.containsKey(fileName);
@@ -66,7 +65,7 @@ public class Commit implements Serializable{
     public String getBranchName(){return this.branchName;}
     public String getTimeStamp(){ return this.timeStamp; }
     public String getMessage(){ return  this.message; }
-
+    public String getParentSHA(){return parentCommit.get(parentCommit.size() - 1);}
     private String getInitialTime()
     {
         ZonedDateTime epochTime = ZonedDateTime.ofInstant(Instant.ofEpochSecond(0), ZoneId.of("UTC"));
