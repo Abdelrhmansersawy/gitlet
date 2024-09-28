@@ -6,14 +6,9 @@ package gitlet;
  */
 public class Main {
 
-    /** Usage: java gitlet.Main ARGS, where ARGS contains
-     *  <COMMAND> <OPERAND1> <OPERAND2> ... 
-     */
     public static void main(String[] args) {
-
         // TODO: check if the git is already initialized deserializing the head object.
-        new FileSystem();
-        Repository repository = null;
+        Repository repository = new Repository();
         if(FileSystem.checkGit()){
             // The Git version control system is already initialized
             repository = new Repository().read();
@@ -44,6 +39,7 @@ public class Main {
             case "commit":
                 repository.commit(args[1]);
             // TODO: FILL THE REST IN
+                break;
             case "global-log":
                 repository.getGlobalLogs();
                 break;
@@ -51,11 +47,29 @@ public class Main {
                 repository.getLogs();
                 break;
             case "find":
-                repository.find(arg[1]);
+                repository.find(args[1]);
                 break;
-
+            case "status":
+                repository.status();
+                break;
+            case "checkout":
+                if(args.length == 3){
+                    repository.checkoutFile(args[2]); // java gitlet.Main checkout -- [file name]
+                }else if(args.length == 4){
+                    repository.checkoutFile(args[3] , args[1]); // java gitlet.Main checkout [commit id] -- [file name]
+                }else if(args.length == 2){
+                    repository.checkoutBranch(args[1]); //  java gitlet.Main checkout [branch name]
+                }
+                break;
+            case "branch":
+                repository.createNewBranch(args[1]);
+                break;
+            case "rm-branch":
+                repository.removeBranch(args[1]);
+                break;
+            case "reset":
+                repository.reset(args[1]);
         }
         repository.write();
-        repository.getHead().print();
     }
 }

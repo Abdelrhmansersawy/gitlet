@@ -14,10 +14,10 @@ import static gitlet.Utils.sha1;
 
 public class Commit implements Serializable{
     private final String timeStamp;
-    private final String branchName;
+    private String branchName;
     private final String message;
     private final Vector<String> parentCommit;
-    private Map<String,String> blobs;
+    private final Map<String,String> blobs;
     public Commit(){
         timeStamp = getInitialTime();
         message = "initial commit.";
@@ -26,24 +26,40 @@ public class Commit implements Serializable{
         parentCommit.add(null);
         blobs = new HashMap<>();
     }
-    public Commit(StagingArea curStagingArea , String message){
-        this.message = message;
+    public Commit(Commit other){
+        // Clone commit
+        this.timeStamp = other.timeStamp;
+        this.branchName = other.branchName;
+        this.message = other.message;
+        this.parentCommit = other.parentCommit;
+        this.blobs = other.blobs;
+    }
+    public Commit(Commit parent , String branchName , String message){
         this.timeStamp = getCurrentTime();
-        Commit par = curStagingArea.getHead();
+        this.branchName = branchName;
+        this.message = message;
         this.parentCommit = new Vector<>();
-        parentCommit.add(par.getCommitSHA());
-        this.branchName = par.getBranchName();
-        this.blobs = par.getBlobs() ;
-        for (Map.Entry<String, String> blob : par.blobs.entrySet()) {
-            if(!this.blobs.containsKey(blob.getKey())){
-                if(curStagingArea.inRemoval(blob.getKey()))
-                    continue;
-                else
-                    this.blobs.put(blob.getKey(), blob.getValue());
-            }
+        this.parentCommit.add(parent.getCommitSHA());
+        this.blobs = parent.blobs;
+    }
+    public Commit(StagingArea currentStagingArea , String branchName , String message){
+        this(currentStagingArea.getHead() , branchName , message);
+        for(Map.Entry<String,String> entry: currentStagingArea.getstagingForAddional().entrySet()){
+            String fileName = entry.getKey();
+            String blobName = entry.getValue();
+            Blob createdBlob = Blob.read(blobName , "stagingForAddional");
+            createdBlob.write("object");
+            this.blobs.put(fileName , createdBlob.getBlobName());
+        }
+        for(Map.Entry<String,String> entry: currentStagingArea.getstagingForRemoval().entrySet()){
+            String fileName = entry.getKey();
+            assert this.blobs.containsKey(fileName);
+            this.blobs.remove(fileName);
         }
         write();
     }
+
+
     public boolean isIdentical(String fileName){
         if(!blobs.containsKey(fileName)) return false;
         Blob B1 = new Blob(blobs.get(fileName));

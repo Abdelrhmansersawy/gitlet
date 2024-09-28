@@ -3,7 +3,6 @@ package gitlet;
 import java.io.File;
 import java.io.Serializable;
 import java.util.*;
-
 // TODO: any imports you need here
 
 /** Represents a gitlet repository.
@@ -20,21 +19,25 @@ public class Repository implements Serializable {
      * comment above them describing what that variable represents and how that
      * variable is used. We've provided two examples for you.
      */
-    private Commit Head;
     private final String Name = "main";
     private StagingArea stagingArea;
     private Vector<logs>globalLogs;
-    public Repository(){}
+    private GlobalBranches globalBranches;
+    public Repository(){
+        new FileSystem();
+
+    }
+
     public Repository(Commit Head){
-        this.Head = Head;
         this.globalLogs =new Vector<>();
         this.globalLogs.add(new logs(Head));
-        this.Head.write();
+        globalBranches = new GlobalBranches();
+        globalBranches.addNewBranch("master" , Head.getCommitSHA());
+        Head.write();
         stagingArea = new StagingArea(Head);
         write();
 
     }
-    public Commit getHead(){ return this.Head; }
     public void write(){
         FileSystem.deleteFile(FileSystem.getFromGit(Name , "repo"));
         FileSystem.SerializingObject(Name , this , "repo");
@@ -53,7 +56,7 @@ public class Repository implements Serializable {
             return;
         }
         Blob currentBlob = new Blob(FileSystem.getAbsolutePath(fileName));
-        if(Head.isIdentical(fileName)){
+        if(stagingArea.getHead().isIdentical(fileName)){
             // check if the current file is identical from the Head commit
             stagingArea.unstage(fileName);
         }else{
@@ -61,16 +64,16 @@ public class Repository implements Serializable {
         }
     }
     public void rm(String fileName){
-        if(!stagingArea.hashAddedFile(fileName) && !Head.isTracked(fileName)){
+        if(!stagingArea.hashAddedFile(fileName) && !stagingArea.getHead().isTracked(fileName)){
             System.out.println("No reason to remove the file.");
             return;
         }
         stagingArea.rm(fileName);
     }
     public void commit(String message){
-        Head = new Commit(stagingArea , message);
-        globalLogs.add(new logs(Head));
-        //stagingArea.clear(); // TODO: Clear all blobs into (add , rm)
+        stagingArea.setHead(new Commit(stagingArea , stagingArea.getHead().getBranchName() ,message));
+        globalLogs.add(new logs(stagingArea.getHead()));
+        stagingArea.clear();
     }
     public void getGlobalLogs()
     {
@@ -81,14 +84,12 @@ public class Repository implements Serializable {
     }
     public void getLogs()
     {
-        Commit currenCommit = new Commit();
-        currentCommit = Head ;
-        whlie(true)
+        Commit currenCommit = new Commit(stagingArea.getHead());
+        while(true)
         {
             System.out.println("=====");
             currenCommit.print();
             String ParentSHA = currenCommit.getParentSHA();
-            //currenCommit.write();
             if(ParentSHA == null)
                 break;
             currenCommit = Commit.read(ParentSHA);
@@ -98,8 +99,101 @@ public class Repository implements Serializable {
     {
         for (int i = 0 ;i < globalLogs.size();i++)
         {
-            if(globalLogs.get(i).getMessage() == message)
+            if(Objects.equals(globalLogs.get(i).getMessage(), message))
                 globalLogs.get(i).printLog();
         }
+    }
+    public void status(){
+        stagingArea.print();
+    }
+    public void checkoutFile(String fileName){
+        if(!FileSystem.exist(FileSystem.getAbsolutePath(fileName))){
+            System.out.println("File does not exist in that commit.\n");
+            return;
+        }
+        checkoutFile(fileName , stagingArea.getHead().getCommitSHA());
+    }
+    public void checkoutFile(String fileName , String commitId) {
+        // TODO: A [commit id] is, as described earlier, a hexadecimal numeral. A convenient feature of real Git is that one can abbreviate commits with a unique prefix
+        if(!FileSystem.getFromGit(commitId, "object").exists()){
+            System.out.println("No commit with that id exists.");
+            return;
+        }
+        if(!FileSystem.exist(FileSystem.getAbsolutePath(fileName))){
+            System.out.println("File does not exist in that commit.\n");
+            return;
+        }
+        Commit currentCommit = Commit.read(commitId);
+        Blob currentBlob = Blob.read(currentCommit.getBlobName(fileName) , "object");
+        currentBlob.ovewrite();
+        stagingArea.unstage(fileName);
+    }
+    public void checkoutBranch(String branchName){
+        if(!FileSystem.getFromGit(branchName , "branch").exists()){
+            System.out.println("No such branch exists.");
+            return;
+        }
+        if(Objects.equals(branchName, stagingArea.getHead().getBranchName())){
+            System.out.println("No need to checkout the current branch.");
+            return;
+        }
+        Commit currentCommit = Commit.read(globalBranches.getBranchHead(branchName));
+        // check if all tracked blobs into currentCommit are tracked by the current head commit
+        for(String fileName : currentCommit.getBlobs().values()){
+            if(!stagingArea.getHead().isTracked(fileName)){
+                System.out.println("There is an untracked file in the way; delete it, or add and commit it first.");
+                return;
+            }
+        }
+        for(Map.Entry<String, String> entry : currentCommit.getBlobs().entrySet()){
+            String fileName = entry.getKey();
+            Blob currentBlob = Blob.read(currentCommit.getBlobName(fileName) , "object");
+            currentBlob.ovewrite();
+            stagingArea.unstage(fileName);
+        }
+        stagingArea.setHead(Commit.read(globalBranches.getBranchHead(branchName)));
+        stagingArea.clear();
+    }
+    public void createNewBranch(String branchName){
+        if(globalBranches.hasBranchWithName(branchName)){
+            System.out.println("A branch with that name already exists.");
+            return;
+        }
+        globalBranches.addNewBranch(branchName , globalBranches.getBranchHead("master"));
+    }
+    public void removeBranch(String branchName){
+        if(!globalBranches.hasBranchWithName(branchName)){
+            System.out.println("A branch with that name does not exist.");
+            return;
+        }
+        if(Objects.equals(branchName, stagingArea.getHead().getBranchName())){
+            System.out.println("Cannot remove the current branch.");
+            return;
+        }
+        globalBranches.removeBranch(branchName);
+    }
+    public void reset(String commitId){
+        if(!FileSystem.getFromGit(commitId,"object").exists()){
+            System.out.println("No commit with that id exists.");
+            return;
+        }
+        Commit currentCommit = Commit.read(commitId);
+        for(Map.Entry<String,String> entry : currentCommit.getBlobs().entrySet()){
+            String fileName = entry.getKey();
+            if(!stagingArea.getHead().isTracked(fileName)){
+                /*
+                If a working file is untracked in the current branch and would be overwritten by the reset
+                 */
+                System.out.println("There is an untracked file in the way; delete it, or add and commit it first.");
+                return;
+            }
+        }
+        for(Map.Entry<String,String> entry : currentCommit.getBlobs().entrySet()){
+            String blobName = entry.getValue();
+            Blob currentBlob = Blob.read(blobName , "object");
+            currentBlob.ovewrite();
+        }
+        stagingArea.setHead(Commit.read(commitId));
+        stagingArea.clear();
     }
 }

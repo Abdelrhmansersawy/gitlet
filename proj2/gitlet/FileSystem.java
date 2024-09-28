@@ -1,6 +1,7 @@
 package gitlet;
 
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Serializable;
 import java.nio.file.Files;
@@ -24,7 +25,8 @@ public class FileSystem implements Serializable {
         DIRECTORY.put("repo" , join(DIRECTORY.get("refr"), "repo") );
         DIRECTORY.put("staging" , join(DIRECTORY.get("repo"), "staging") );
         DIRECTORY.put("stagingForAddional" , join(DIRECTORY.get("staging"), "add") );
-        DIRECTORY.put("stagingForRemoval" , join(DIRECTORY.get("staging"), "rn") );
+        DIRECTORY.put("stagingForRemoval" , join(DIRECTORY.get("staging"), "rm") );
+        DIRECTORY.put("branch" , join(DIRECTORY.get("git") , "branches"));
     }
 
     public static String getCWD(){
@@ -73,12 +75,7 @@ public class FileSystem implements Serializable {
         return readObject(inFile, objectType);
     }
     public static String readFile(String absolutePath){
-        try {
-           return Files.readString(Path.of(absolutePath));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return null;
+        return readContentsAsString(new File(absolutePath));
     }
     public static void deleteFile(String aboslutePath){
         deleteFile(new File(aboslutePath));
@@ -106,6 +103,17 @@ public class FileSystem implements Serializable {
             }
         } catch (IOException e) {
             System.err.println("Error: " + e.getMessage());
+        }
+    }
+    public static void writeContentIntoFile(String absolutePath , String content){
+
+        try {
+            FileWriter writer = new FileWriter(absolutePath);
+            writer.write(content);
+            writer.close();
+        } catch (IOException e) {
+            System.out.println("Can't create a file with absolute path equal " + absolutePath);
+            e.printStackTrace();
         }
     }
     public static boolean checkGit(){

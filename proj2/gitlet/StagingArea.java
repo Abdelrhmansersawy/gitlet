@@ -28,7 +28,7 @@ public class StagingArea implements Serializable {
 
     public void stage(String fileName , Blob B){
         if(stagingForAddional.containsKey(fileName)){
-            FileSystem.deleteFile(FileSystem.getFromGit(fileName , "stagingForAddional"));
+            FileSystem.deleteFile(FileSystem.getFromGit(stagingForAddional.get(fileName) , "stagingForAddional"));
         }
         stagingForAddional.put(fileName , B.getBlobName());
         B.write("stagingForAddional");
@@ -58,12 +58,34 @@ public class StagingArea implements Serializable {
     public boolean inRemoval(String file) {
         return stagingForRemoval.containsKey(file);
     }
-    public Map<String , String> getAddedfile() {
+    public Map<String , String> getstagingForAddional() {
         return stagingForAddional;
+    }
+    public Map<String , String> getstagingForRemoval() {
+        return stagingForRemoval;
     }
 
     public boolean hashAddedFile(String fileName) {
         return stagingForAddional.containsKey(fileName);
 
+    }
+    public void clear(){
+        for(String blobName : stagingForAddional.values()){
+            FileSystem.deleteFile(FileSystem.getFromGit(blobName , "stagingForAddional"));
+        }
+        stagingForAddional.clear();
+        stagingForRemoval.clear();
+    }
+    public void print(){
+        System.out.println("=== Staged Files ===");
+        for(String fileName : stagingForAddional.keySet()){
+            System.out.println(fileName);
+        }
+        System.out.println();
+        System.out.println("=== Removed Files ===");
+        for(String fileName : stagingForRemoval.keySet()){
+            System.out.println(fileName);
+        }
+        System.out.println();
     }
 }

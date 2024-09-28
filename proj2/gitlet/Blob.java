@@ -43,6 +43,12 @@ public class Blob  implements Serializable{
          */
         return FileSystem.DeserializingObject(SHA , Blob.class , key);
     }
+    public void  ovewrite(){
+        /*
+        Overwrite the content of this blob of the one into working directory
+         */
+        FileSystem.writeContentIntoFile(this.getFilePath() , this.getContent());
+    }
     public int compareTo(Blob other){
         return this.getBlobName().compareTo(other.getBlobName());
     }

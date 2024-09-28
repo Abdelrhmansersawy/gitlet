@@ -1,13 +1,6 @@
 package gitlet;
 
-import java.io.File;
-import java.io.IOException;
 import java.io.Serializable;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import static gitlet.Utils.*;
 
 public class logs implements Serializable{
     private String message ; // Store the message of the Commit
