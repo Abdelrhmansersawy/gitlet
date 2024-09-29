@@ -25,6 +25,12 @@ public class GlobalBranches implements Serializable {
         Branch currentBranch = Branch.read(branchName);
         return  currentBranch.getHead();
     }
+    public String getBranchStart(String branchName)
+    {
+        //Check if the branch exist
+        Branch currentBranch = Branch.read(branchName);
+        return  currentBranch.getStartCommitSHA();
+    }
     public void removeBranch(String branchName){
         branches.remove(branchName);
     }

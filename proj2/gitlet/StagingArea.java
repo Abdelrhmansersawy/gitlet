@@ -64,7 +64,6 @@ public class StagingArea implements Serializable {
     public Map<String , String> getstagingForRemoval() {
         return stagingForRemoval;
     }
-
     public boolean hashAddedFile(String fileName) {
         return stagingForAddional.containsKey(fileName);
 

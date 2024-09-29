@@ -69,6 +69,10 @@ public class Main {
                 break;
             case "reset":
                 repository.reset(args[1]);
+                break;
+            case "merge":
+
+                break;
         }
         repository.write();
     }

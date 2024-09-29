@@ -8,13 +8,15 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.HashSet;
+import java.util.Set;
 
 import static gitlet.Utils.sha1;
 
 
 public class Commit implements Serializable{
     private final String timeStamp;
-    private String branchName;
+    private final String branchName;
     private final String message;
     private final Vector<String> parentCommit;
     private final Map<String,String> blobs;
@@ -110,5 +112,13 @@ public class Commit implements Serializable{
         System.out.println("commit " + getCommitSHA());
         System.out.println("Date: " + getTimeStamp());
         System.out.println(getMessage());
+    }
+    public void merge(Map <String , String >blob , String par1 , String par2, String branchName)
+    {
+        message = "message";
+        this.blobs = blob;
+        this.parentCommit.add(par2);
+        this.parentCommit.add(par1);
+        this.branchName = branchName;
     }
 }

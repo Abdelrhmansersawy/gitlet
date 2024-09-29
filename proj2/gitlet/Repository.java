@@ -23,6 +23,7 @@ public class Repository implements Serializable {
     private StagingArea stagingArea;
     private Vector<logs>globalLogs;
     private GlobalBranches globalBranches;
+
     public Repository(){
         new FileSystem();
 
@@ -195,5 +196,65 @@ public class Repository implements Serializable {
         }
         stagingArea.setHead(Commit.read(commitId));
         stagingArea.clear();
+    }
+    public void merge(String SecondBrach)
+    {
+        String secondBranchHead = globalBranches.getBranchHead(SecondBranch);
+        String currentBranchHead = stagingArea.getHead().getBranchName();
+        // missing untracked file
+        if(secondBranchHead == currentBranchHead)
+        {
+            System.out.println("Cannot merge a branch with itself");
+            return ;
+        }
+        Commit currentCommit = Commit.read(currentBranchHead);
+        Commit secondCommit = Commit.read(secondBranchHead);
+        Commit ref ;// miss
+        Map<String,String> blob1 = new HashMap<>(currenCommit.getBlobs()), blob2 =new HashMap<>(secondCommit.getBlobs())  ,blob3 = new HashMap<>(ref.getBlobs()) , currentblobs =new HashMap<>();
+        Set<String> allBlobs = new HashSet<>();
+        for(Map.Entry<String,String> entry: blob1.entrySet()){
+            allBlobs.add(entry.getKey());
+        }
+        for(Map.Entry<String,String> entry: blob2.entrySet()){
+            allBlobs.add(entry.getKey());
+        }
+        for(Map.Entry<String,String> entry: ref.entrySet()){
+            allBlobs.add(entry.getKey());
+        }
+        boolean err  = false ;
+        for(auto blob : allBlobs)
+        {
+            if(blob1.get(blob).equals(blob3.get(blob)))
+            {
+                if(!blob2.get(blob).equals(blob3.get(blob)))
+                    currentblobs.put(blob, blob2.get(blob));
+                else
+                    currentblobs.put(blob,blob2.get(blob));
+            }
+            else
+            {
+              if(!blob2.get(blob).equals(blob3.get(blob)))
+              {
+                if(!blob2.get(blob).equals(blob1.get(blob)))
+                {
+                    err = true ;
+                    break;
+                }
+                else
+                {
+                    currentblobs.put(blob,blob2.get(blob));
+                }
+              }
+              else
+              {
+                currentblobs.put(blob, blob1.get(blob));
+              }
+            }
+        }
+        if(err)
+        {
+            System.out.println("There is a confilect");
+            return ;
+        }
     }
 }
