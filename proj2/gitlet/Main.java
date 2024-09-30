@@ -71,7 +71,7 @@ public class Main {
                 repository.reset(args[1]);
                 break;
             case "merge":
-
+                repository.merge(args[1]);
                 break;
         }
         repository.write();

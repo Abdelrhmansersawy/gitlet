@@ -68,6 +68,7 @@ public class StagingArea implements Serializable {
         return stagingForAddional.containsKey(fileName);
 
     }
+    public boolean isClear(){ return  stagingForAddional.isEmpty() && stagingForRemoval.isEmpty(); }
     public void clear(){
         for(String blobName : stagingForAddional.values()){
             FileSystem.deleteFile(FileSystem.getFromGit(blobName , "stagingForAddional"));
@@ -75,6 +76,7 @@ public class StagingArea implements Serializable {
         stagingForAddional.clear();
         stagingForRemoval.clear();
     }
+
     public void print(){
         System.out.println("=== Staged Files ===");
         for(String fileName : stagingForAddional.keySet()){

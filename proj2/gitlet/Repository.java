@@ -73,14 +73,13 @@ public class Repository implements Serializable {
     }
     public void commit(String message){
         stagingArea.setHead(new Commit(stagingArea , stagingArea.getHead().getBranchName() ,message));
+        globalBranches.setBranchHead(stagingArea.getHead().getBranchName() , stagingArea.getHead().getCommitSHA()); // update branch head
         globalLogs.add(new logs(stagingArea.getHead()));
         stagingArea.clear();
     }
-    public void getGlobalLogs()
-    {
-        for (int i = 0 ;i < this.globalLogs.size();i++)
-        {
-            globalLogs.get(i).printLog();
+    public void getGlobalLogs(){
+        for (logs globalLog : this.globalLogs) {
+            globalLog.printLog();
         }
     }
     public void getLogs()
@@ -197,64 +196,23 @@ public class Repository implements Serializable {
         stagingArea.setHead(Commit.read(commitId));
         stagingArea.clear();
     }
-    public void merge(String SecondBrach)
+    public void merge(String SecondBranch)
     {
+        if(!stagingArea.isClear()){
+            System.out.println("You have uncommitted changes.");
+            return;
+        }
+        if(!globalBranches.hasBranchWithName(SecondBranch)){
+            System.out.println("A branch with that name does not exist.");
+            return;
+        }
+        if(Objects.equals(stagingArea.getHead().getBranchName(), SecondBranch)){
+            System.out.println("Cannot merge a branch with itself.");
+            return;
+        }
         String secondBranchHead = globalBranches.getBranchHead(SecondBranch);
         String currentBranchHead = stagingArea.getHead().getBranchName();
-        // missing untracked file
-        if(secondBranchHead == currentBranchHead)
-        {
-            System.out.println("Cannot merge a branch with itself");
-            return ;
-        }
-        Commit currentCommit = Commit.read(currentBranchHead);
-        Commit secondCommit = Commit.read(secondBranchHead);
-        Commit ref ;// miss
-        Map<String,String> blob1 = new HashMap<>(currenCommit.getBlobs()), blob2 =new HashMap<>(secondCommit.getBlobs())  ,blob3 = new HashMap<>(ref.getBlobs()) , currentblobs =new HashMap<>();
-        Set<String> allBlobs = new HashSet<>();
-        for(Map.Entry<String,String> entry: blob1.entrySet()){
-            allBlobs.add(entry.getKey());
-        }
-        for(Map.Entry<String,String> entry: blob2.entrySet()){
-            allBlobs.add(entry.getKey());
-        }
-        for(Map.Entry<String,String> entry: ref.entrySet()){
-            allBlobs.add(entry.getKey());
-        }
-        boolean err  = false ;
-        for(auto blob : allBlobs)
-        {
-            if(blob1.get(blob).equals(blob3.get(blob)))
-            {
-                if(!blob2.get(blob).equals(blob3.get(blob)))
-                    currentblobs.put(blob, blob2.get(blob));
-                else
-                    currentblobs.put(blob,blob2.get(blob));
-            }
-            else
-            {
-              if(!blob2.get(blob).equals(blob3.get(blob)))
-              {
-                if(!blob2.get(blob).equals(blob1.get(blob)))
-                {
-                    err = true ;
-                    break;
-                }
-                else
-                {
-                    currentblobs.put(blob,blob2.get(blob));
-                }
-              }
-              else
-              {
-                currentblobs.put(blob, blob1.get(blob));
-              }
-            }
-        }
-        if(err)
-        {
-            System.out.println("There is a confilect");
-            return ;
-        }
+        //TODO missing untracked file
+
     }
 }

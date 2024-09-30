@@ -21,6 +21,7 @@ public class Commit implements Serializable{
     private final Vector<String> parentCommit;
     private final Map<String,String> blobs;
     private final int depthInTree;
+    private String mergedCommit ;
     public Commit(){
         timeStamp = getInitialTime();
         message = "initial commit.";
@@ -28,6 +29,7 @@ public class Commit implements Serializable{
         parentCommit = new Vector<>();
         parentCommit.add(null);
         blobs = new HashMap<>();
+        mergedCommit = "Not a merged commit";
         depthInTree = 0; // root of the tree
     }
     public Commit(Commit other){
@@ -49,7 +51,7 @@ public class Commit implements Serializable{
         this.depthInTree = 1 + parent.getDepthInTree();
     }
     public Commit(StagingArea currentStagingArea , String branchName , String message){
-       // Constructor for commit command
+        // Constructor for commit command
         this(currentStagingArea.getHead() , branchName , message);
         for(Map.Entry<String,String> entry: currentStagingArea.getstagingForAddional().entrySet()){
             String fileName = entry.getKey();
@@ -145,18 +147,66 @@ public class Commit implements Serializable{
         }
         return commitID1;
     }
-//    public Commit(Commit parentCommit1 , Commit parentCommit2 , String message){
-//        this.message = message;
-//        this.parentCommit = new Vector<>();
-//        this.parentCommit.add(parentCommit2.getCommitSHA()); // merged Branch
-//        this.parentCommit.add(parentCommit1.getCommitSHA()); // current working Branch
-//        this.branchName = parentCommit1.getBranchName();
-//    }
-//    public void merge(Map <String , String >blob , String par1 , String par2, String branchName) {
-//        this.message = "message";
-//        this.blobs = blob;
-//        this.parentCommit.add(par2);
-//        this.parentCommit.add(par1);
-//        this.branchName = branchName;
-//    }
+    private boolean setMergedBlobs(Commit currentCommit , Commit secondCommit , Commit ref)
+    {
+        Map<String,String> blob1 = new HashMap<>(currentCommit.getBlobs()), blob2 =new HashMap<>(secondCommit.getBlobs())  ,blob3 = new HashMap<>(ref.getBlobs());
+        Set<String> allBlobs = new HashSet<>();
+        for(Map.Entry<String,String> entry: blob1.entrySet()){
+            allBlobs.add(entry.getKey());
+        }
+        for(Map.Entry<String,String> entry: blob2.entrySet()){
+            allBlobs.add(entry.getKey());
+        }
+        for(Map.Entry<String,String> entry: blob3.entrySet()){
+            allBlobs.add(entry.getKey());
+        }
+        boolean confilect = false;
+        for(String blob : allBlobs)
+        {
+            if(blob1.get(blob).equals(blob3.get(blob)))
+            {
+                if(!blob2.get(blob).equals(blob3.get(blob)))
+                    blobs.put(blob, blob2.get(blob));
+                else
+                    blobs.put(blob,blob2.get(blob));
+            }
+            else
+            {
+                if(!blob2.get(blob).equals(blob3.get(blob)))
+                {
+                    if(!blob2.get(blob).equals(blob1.get(blob)))
+                    {
+                        confilect = true ;
+                        break;
+                    }
+                    else
+                    {
+                        blobs.put(blob,blob2.get(blob));
+                    }
+                }
+                else
+                {
+                    blobs.put(blob, blob1.get(blob));
+                }
+            }
+        }
+        return confilect;
+    }
+    public Commit(String par1 , String par2) {
+        this.timeStamp = getCurrentTime();
+        this.message = "message";
+        parentCommit = new Vector<>();
+        parentCommit.add(null);
+        this.mergedCommit= "merged Commit";
+        this.parentCommit.add(par2);
+        this.parentCommit.add(par1);
+        blobs = new HashMap<>();
+        Commit currentCommit = Commit.read(par1);
+        Commit secondCommit = Commit.read(par2);
+        Commit ref = Commit.read(getLowestCommonCommit(par1 , par2));
+        this.branchName = currentCommit.getBranchName();
+        setMergedBlobs(currentCommit, secondCommit, ref);
+        depthInTree = Math.max(currentCommit.getDepthInTree(), secondCommit.getDepthInTree());
+    }
+    public Boolean isThereConfilct(){return true;}
 }
