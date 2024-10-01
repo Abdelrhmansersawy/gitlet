@@ -6,7 +6,7 @@ import static gitlet.Utils.*;
 
 public class Blob  implements Serializable{
     private final String filePath; // Store the Name of tracked file
-    private final String content; // Store the content of file
+    private  String content; // Store the content of file
     private final String BlobName;
     public Blob(){
         this.filePath = null;
@@ -28,6 +28,10 @@ public class Blob  implements Serializable{
     }
     public String getContent(){
         return this.content;
+    }
+    public  void setContent(String content)
+    {
+        this.content = content;
     }
     public String getBlobName(){ return this.BlobName; }
     private String getBlobSHA() { return sha1(filePath, content); }

@@ -21,6 +21,7 @@ public class Commit implements Serializable{
     private final Vector<String> parentCommit;
     private final Map<String,String> blobs;
     private final int depthInTree;
+    private boolean isThereError ;
     private String mergedCommit ;
     public Commit(){
         timeStamp = getInitialTime();
@@ -147,7 +148,7 @@ public class Commit implements Serializable{
         }
         return commitID1;
     }
-    private boolean setMergedBlobs(Commit currentCommit , Commit secondCommit , Commit ref)
+    private void setMergedBlobs(Commit currentCommit , Commit secondCommit , Commit ref)
     {
         Map<String,String> blob1 = new HashMap<>(currentCommit.getBlobs()), blob2 =new HashMap<>(secondCommit.getBlobs())  ,blob3 = new HashMap<>(ref.getBlobs());
         Set<String> allBlobs = new HashSet<>();
@@ -160,7 +161,6 @@ public class Commit implements Serializable{
         for(Map.Entry<String,String> entry: blob3.entrySet()){
             allBlobs.add(entry.getKey());
         }
-        boolean confilect = false;
         for(String blob : allBlobs)
         {
             if(blob1.get(blob).equals(blob3.get(blob)))
@@ -176,8 +176,8 @@ public class Commit implements Serializable{
                 {
                     if(!blob2.get(blob).equals(blob1.get(blob)))
                     {
-                        confilect = true ;
-                        break;
+                        Blob mergedBlob = blob1;
+
                     }
                     else
                     {
@@ -190,7 +190,6 @@ public class Commit implements Serializable{
                 }
             }
         }
-        return confilect;
     }
     public Commit(String par1 , String par2) {
         this.timeStamp = getCurrentTime();
@@ -208,5 +207,4 @@ public class Commit implements Serializable{
         setMergedBlobs(currentCommit, secondCommit, ref);
         depthInTree = Math.max(currentCommit.getDepthInTree(), secondCommit.getDepthInTree());
     }
-    public Boolean isThereConfilct(){return true;}
 }

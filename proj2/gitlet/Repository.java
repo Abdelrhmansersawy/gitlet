@@ -198,7 +198,7 @@ public class Repository implements Serializable {
     }
     public void merge(String SecondBranch)
     {
-        if(!stagingArea.isClear()){
+        if(stagingArea.isClear()){
             System.out.println("You have uncommitted changes.");
             return;
         }
@@ -210,9 +210,18 @@ public class Repository implements Serializable {
             System.out.println("Cannot merge a branch with itself.");
             return;
         }
+        if(stagingArea.isThereUntrackedFile()){
+                System.out.println("There is an untracked file in the way; delete it, or add and commit it first.");
+                return;
+        }
         String secondBranchHead = globalBranches.getBranchHead(SecondBranch);
         String currentBranchHead = stagingArea.getHead().getBranchName();
-        //TODO missing untracked file
+
+        Commit mergedCommit =new Commit (currentBranchHead , secondBranchHead);
+        stagingArea.setHead(mergedCommit);
+        globalBranches.setBranchHead(stagingArea.getHead().getBranchName() , stagingArea.getHead().getCommitSHA());
+        globalLogs.add(new logs(stagingArea.getHead()));
+        stagingArea.clear();
 
     }
 }

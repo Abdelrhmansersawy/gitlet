@@ -120,7 +120,7 @@ public class StagingArea implements Serializable {
     }
     public boolean isThereUntrackedFiles(){
         buildUntrackedFiles();
-        return untrackedFiles.isEmpty() && modifiedStagedFiles.isEmpty() && deletedStagedFiles.isEmpty();
+        return untrac  !modifiedStagedFiles.isEmpty() || !deletedStagedFiles.isEmpty();
     }
     public void print(){
         buildUntrackedFiles();
@@ -153,4 +153,5 @@ public class StagingArea implements Serializable {
         System.out.println();
 
     }
+    public bool isThereUntrackedFile(){return untrackedFiles.size()>0;}
 }
