@@ -150,6 +150,7 @@ public class StagingArea implements Serializable {
         for(String fileName : untrackedFiles){
             System.out.println(fileName);
         }
+        System.out.println();
 
     }
 }
