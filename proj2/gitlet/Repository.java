@@ -104,6 +104,7 @@ public class Repository implements Serializable {
         }
     }
     public void status(){
+        globalBranches.print(stagingArea.getHead().getBranchName());
         stagingArea.print();
     }
     public void checkoutFile(String fileName){
@@ -125,7 +126,7 @@ public class Repository implements Serializable {
         }
         Commit currentCommit = Commit.read(commitId);
         Blob currentBlob = Blob.read(currentCommit.getBlobName(fileName) , "object");
-        currentBlob.ovewrite();
+        currentBlob.overWriteWorkingDirectory();
         stagingArea.unstage(fileName);
     }
     public void checkoutBranch(String branchName){
@@ -148,7 +149,7 @@ public class Repository implements Serializable {
         for(Map.Entry<String, String> entry : currentCommit.getBlobs().entrySet()){
             String fileName = entry.getKey();
             Blob currentBlob = Blob.read(currentCommit.getBlobName(fileName) , "object");
-            currentBlob.ovewrite();
+            currentBlob.overWriteWorkingDirectory();
             stagingArea.unstage(fileName);
         }
         stagingArea.setHead(Commit.read(globalBranches.getBranchHead(branchName)));
@@ -191,7 +192,7 @@ public class Repository implements Serializable {
         for(Map.Entry<String,String> entry : currentCommit.getBlobs().entrySet()){
             String blobName = entry.getValue();
             Blob currentBlob = Blob.read(blobName , "object");
-            currentBlob.ovewrite();
+            currentBlob.overWriteWorkingDirectory();
         }
         stagingArea.setHead(Commit.read(commitId));
         stagingArea.clear();
@@ -210,18 +211,20 @@ public class Repository implements Serializable {
             System.out.println("Cannot merge a branch with itself.");
             return;
         }
-        if(stagingArea.isThereUntrackedFile()){
+        if(stagingArea.isThereUntrackedFiles()){
                 System.out.println("There is an untracked file in the way; delete it, or add and commit it first.");
                 return;
         }
+
         String secondBranchHead = globalBranches.getBranchHead(SecondBranch);
         String currentBranchHead = stagingArea.getHead().getBranchName();
-
         Commit mergedCommit =new Commit (currentBranchHead , secondBranchHead);
         stagingArea.setHead(mergedCommit);
         globalBranches.setBranchHead(stagingArea.getHead().getBranchName() , stagingArea.getHead().getCommitSHA());
         globalLogs.add(new logs(stagingArea.getHead()));
         stagingArea.clear();
 
+        // overwrite current head blobs with the current working directory blobs
+        stagingArea.getHead().overWriteWorkingDirectory();;
     }
 }

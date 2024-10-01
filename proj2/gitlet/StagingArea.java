@@ -6,16 +6,15 @@ import java.util.*;
 
 public class StagingArea implements Serializable {
     private Commit Head;
-    private Map<String , String> stagingForAddional;
+    private Map<String , String> stagingForAdditional;
     private Map<String , String> stagingForRemoval;
     private List<String> modifiedStagedFiles;
     private List<String> deletedStagedFiles;
     private List<String> untrackedFiles;
-    private final String Name = "stagingArea";
     private final String CWD;
 
     public StagingArea(Commit Head){
-        stagingForAddional = new HashMap<>();
+        stagingForAdditional = new HashMap<>();
         stagingForRemoval = new HashMap<>();
         CWD = FileSystem.getCWD();
         setHead(Head);
@@ -25,17 +24,17 @@ public class StagingArea implements Serializable {
 
 
     public void stage(String fileName , Blob B){
-        if(stagingForAddional.containsKey(fileName)){
-            FileSystem.deleteFile(FileSystem.getFromGit(stagingForAddional.get(fileName) , "stagingForAddional"));
+        if(stagingForAdditional.containsKey(fileName)){
+            FileSystem.deleteFile(FileSystem.getFromGit(stagingForAdditional.get(fileName) , "stagingForAdditional"));
         }
-        stagingForAddional.put(fileName , B.getBlobName());
+        stagingForAdditional.put(fileName , B.getBlobName());
         B.write("stagingForAddional");
     }
     public void unstage(String fileName){
-        if(stagingForAddional.containsKey(fileName)){
-            FileSystem.deleteFile(FileSystem.getFromGit(stagingForAddional.get(fileName) , "stagingForAddional"));
+        if(stagingForAdditional.containsKey(fileName)){
+            FileSystem.deleteFile(FileSystem.getFromGit(stagingForAdditional.get(fileName) , "stagingForAdditional"));
         }
-        stagingForAddional.remove(fileName);
+        stagingForAdditional.remove(fileName);
     }
 
     void rm(String fileName){
@@ -55,23 +54,23 @@ public class StagingArea implements Serializable {
 
 
     public Map<String , String> getstagingForAddional() {
-        return stagingForAddional;
+        return stagingForAdditional;
     }
     public Map<String , String> getstagingForRemoval() {
         return stagingForRemoval;
     }
     public boolean hashAddedFile(String fileName) {
-        return stagingForAddional.containsKey(fileName);
+        return stagingForAdditional.containsKey(fileName);
     }
     public boolean hashRemovedFile(String fileName) {
         return stagingForRemoval.containsKey(fileName);
     }
-    public boolean isClear(){ return  stagingForAddional.isEmpty() && stagingForRemoval.isEmpty(); }
+    public boolean isClear(){ return  stagingForAdditional.isEmpty() && stagingForRemoval.isEmpty(); }
     public void clear(){
-        for(String blobName : stagingForAddional.values()){
-            FileSystem.deleteFile(FileSystem.getFromGit(blobName , "stagingForAddional"));
+        for(String blobName : stagingForAdditional.values()){
+            FileSystem.deleteFile(FileSystem.getFromGit(blobName , "stagingForAdditional"));
         }
-        stagingForAddional.clear();
+        stagingForAdditional.clear();
         stagingForRemoval.clear();
         modifiedStagedFiles.clear();
         deletedStagedFiles.clear();
@@ -95,8 +94,8 @@ public class StagingArea implements Serializable {
                     }else if(Head.isTracked(fileName)){
                         Blob headBlob = Blob.read(Head.getBlobName(fileName), "object");
                         if(!currentBlob.equals(headBlob)){
-                            if(stagingForAddional.containsKey(fileName)){
-                                Blob stagingBlob = Blob.read(stagingForAddional.get(fileName), "stagingForAddional");
+                            if(stagingForAdditional.containsKey(fileName)){
+                                Blob stagingBlob = Blob.read(stagingForAdditional.get(fileName), "stagingForAdditional");
                                 if(!stagingBlob.equals(currentBlob)){
                                     modifiedStagedFiles.add(fileName);
                                 }
@@ -105,8 +104,8 @@ public class StagingArea implements Serializable {
                             }
                         }
                     }else{
-                        if(stagingForAddional.containsKey(fileName)){
-                            Blob stagingBlob = Blob.read(stagingForAddional.get(fileName), "stagingForAddional");
+                        if(stagingForAdditional.containsKey(fileName)){
+                            Blob stagingBlob = Blob.read(stagingForAdditional.get(fileName), "stagingForAdditional");
                             if(!stagingBlob.equals(currentBlob)){
                                 modifiedStagedFiles.add(fileName);
                             }
@@ -120,13 +119,12 @@ public class StagingArea implements Serializable {
     }
     public boolean isThereUntrackedFiles(){
         buildUntrackedFiles();
-        return untrac  !modifiedStagedFiles.isEmpty() || !deletedStagedFiles.isEmpty();
+        return !modifiedStagedFiles.isEmpty() || !deletedStagedFiles.isEmpty();
     }
     public void print(){
         buildUntrackedFiles();
-
         System.out.println("=== Staged Files ===");
-        for(String fileName : stagingForAddional.keySet()){
+        for(String fileName : stagingForAdditional.keySet()){
             System.out.println(fileName);
         }
         System.out.println();
@@ -153,5 +151,4 @@ public class StagingArea implements Serializable {
         System.out.println();
 
     }
-    public bool isThereUntrackedFile(){return untrackedFiles.size()>0;}
 }

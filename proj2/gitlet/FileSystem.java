@@ -21,11 +21,10 @@ public class FileSystem implements Serializable {
         DIRECTORY = new LinkedHashMap<>();
         DIRECTORY.put("git" , GITLET_DIR);
         DIRECTORY.put("object" , join(DIRECTORY.get("git") , "object"));
-        DIRECTORY.put("refr" , join(DIRECTORY.get("git") , "refr"));
-        DIRECTORY.put("repo" , join(DIRECTORY.get("refr"), "repo") );
+        DIRECTORY.put("refer" , join(DIRECTORY.get("git") , "refer"));
+        DIRECTORY.put("repo" , join(DIRECTORY.get("refer"), "repo") );
         DIRECTORY.put("staging" , join(DIRECTORY.get("repo"), "staging") );
-        DIRECTORY.put("stagingForAddional" , join(DIRECTORY.get("staging"), "add") );
-        DIRECTORY.put("stagingForRemoval" , join(DIRECTORY.get("staging"), "rm") );
+        DIRECTORY.put("stagingForAdditional" , join(DIRECTORY.get("staging"), "add") );
         DIRECTORY.put("branch" , join(DIRECTORY.get("git") , "branches"));
     }
 

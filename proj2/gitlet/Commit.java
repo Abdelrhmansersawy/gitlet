@@ -21,7 +21,6 @@ public class Commit implements Serializable{
     private final Vector<String> parentCommit;
     private final Map<String,String> blobs;
     private final int depthInTree;
-    private boolean isThereError ;
     private String mergedCommit ;
     public Commit(){
         timeStamp = getInitialTime();
@@ -125,12 +124,12 @@ public class Commit implements Serializable{
 
     // Merging two branches
     private String move(int steps){
-        String currentCommit = getCommitSHA();
+        String currentBranchHead = getCommitSHA();
         while(steps > 0){
-            currentCommit  = Commit.read(currentCommit).getParentSHA();
+            currentBranchHead  = Commit.read(currentBranchHead).getParentSHA();
             steps--;
         }
-        return currentCommit;
+        return currentBranchHead;
     }
     public String getLowestCommonCommit(String commitID1 , String commitID2){
         Commit c1 = Commit.read(commitID1);
@@ -148,45 +147,52 @@ public class Commit implements Serializable{
         }
         return commitID1;
     }
-    private void setMergedBlobs(Commit currentCommit , Commit secondCommit , Commit ref)
+    private void setMergedBlobs(Commit currentBranchHead , Commit givenBranchHead , Commit ref)
     {
-        Map<String,String> blob1 = new HashMap<>(currentCommit.getBlobs()), blob2 =new HashMap<>(secondCommit.getBlobs())  ,blob3 = new HashMap<>(ref.getBlobs());
+        Map<String,String> currentBranchBlobs = new HashMap<>(currentBranchHead.getBlobs()),
+                           givenBranchBlobs =new HashMap<>(givenBranchHead.getBlobs()),
+                           spitCommitBlobs = new HashMap<>(ref.getBlobs());
         Set<String> allBlobs = new HashSet<>();
-        for(Map.Entry<String,String> entry: blob1.entrySet()){
+        for(Map.Entry<String,String> entry: currentBranchBlobs.entrySet()){
             allBlobs.add(entry.getKey());
         }
-        for(Map.Entry<String,String> entry: blob2.entrySet()){
+        for(Map.Entry<String,String> entry: givenBranchBlobs.entrySet()){
             allBlobs.add(entry.getKey());
         }
-        for(Map.Entry<String,String> entry: blob3.entrySet()){
+        for(Map.Entry<String,String> entry: spitCommitBlobs.entrySet()){
             allBlobs.add(entry.getKey());
         }
-        for(String blob : allBlobs)
+        for(String fileName : allBlobs)
         {
-            if(blob1.get(blob).equals(blob3.get(blob)))
+            if(currentBranchBlobs.get(fileName).equals(spitCommitBlobs.get(fileName)))
             {
-                if(!blob2.get(blob).equals(blob3.get(blob)))
-                    blobs.put(blob, blob2.get(blob));
+                if(!givenBranchBlobs.get(fileName).equals(spitCommitBlobs.get(fileName)))
+                    blobs.put(fileName, givenBranchBlobs.get(fileName));
                 else
-                    blobs.put(blob,blob2.get(blob));
+                    blobs.put(fileName, givenBranchBlobs.get(fileName));
             }
             else
             {
-                if(!blob2.get(blob).equals(blob3.get(blob)))
+                if(!givenBranchBlobs.get(fileName).equals(spitCommitBlobs.get(fileName)))
                 {
-                    if(!blob2.get(blob).equals(blob1.get(blob)))
+                    if(!givenBranchBlobs.get(fileName).equals(currentBranchBlobs.get(fileName)))
                     {
-                        Blob mergedBlob = blob1;
-
+//                        Blob mergedBlob = currentBranchBlobs;
+                        String newConent = "<<<<<<< HEAD\n";
+                        newConent += Blob.read(currentBranchBlobs.get(fileName),"object").getContent();
+                        newConent += "\n=======\n";
+                        newConent += Blob.read(givenBranchBlobs.get(fileName),"object").getContent();
+                        newConent += "\n>>>>>>>";
+                        Blob mergeBlob = new Blob(fileName , newConent);
+                        mergeBlob.write("object");
+                        blobs.put(fileName,mergeBlob.getBlobName());
                     }
-                    else
-                    {
-                        blobs.put(blob,blob2.get(blob));
+                    else {
+                        blobs.put(fileName,givenBranchBlobs.get(fileName));
                     }
                 }
-                else
-                {
-                    blobs.put(blob, blob1.get(blob));
+                else {
+                    blobs.put(fileName, currentBranchBlobs.get(fileName));
                 }
             }
         }
@@ -200,11 +206,17 @@ public class Commit implements Serializable{
         this.parentCommit.add(par2);
         this.parentCommit.add(par1);
         blobs = new HashMap<>();
-        Commit currentCommit = Commit.read(par1);
-        Commit secondCommit = Commit.read(par2);
+        Commit currentBranchHead = Commit.read(par1);
+        Commit givenBranchHead = Commit.read(par2);
         Commit ref = Commit.read(getLowestCommonCommit(par1 , par2));
-        this.branchName = currentCommit.getBranchName();
-        setMergedBlobs(currentCommit, secondCommit, ref);
-        depthInTree = Math.max(currentCommit.getDepthInTree(), secondCommit.getDepthInTree());
+        this.branchName = currentBranchHead.getBranchName();
+        setMergedBlobs(currentBranchHead, givenBranchHead, ref);
+        depthInTree = Math.max(currentBranchHead.getDepthInTree(), givenBranchHead.getDepthInTree()) + 1;
+    }
+    public void overWriteWorkingDirectory(){
+        for(String blobName : blobs.values()){
+            Blob currentBlob = Blob.read(blobName,"object");
+            currentBlob.overWriteWorkingDirectory();
+        }
     }
 }
