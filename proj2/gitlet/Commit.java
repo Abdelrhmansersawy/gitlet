@@ -56,7 +56,7 @@ public class Commit implements Serializable{
         for(Map.Entry<String,String> entry: currentStagingArea.getstagingForAddional().entrySet()){
             String fileName = entry.getKey();
             String blobName = entry.getValue();
-            Blob createdBlob = Blob.read(blobName , "stagingForAddional");
+            Blob createdBlob = Blob.read(blobName , "stagingForAdditional");
             createdBlob.write("object");
             this.blobs.put(fileName , createdBlob.getBlobName());
         }

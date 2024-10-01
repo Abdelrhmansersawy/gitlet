@@ -7,17 +7,18 @@ package gitlet;
 public class Main {
 
     public static void main(String[] args) {
+        if(args.length == 0){
+            // TODO: what if args is empty?
+
+            return;
+        }
         // TODO: check if the git is already initialized deserializing the head object.
         Repository repository = new Repository();
         if(FileSystem.checkGit()){
             // The Git version control system is already initialized
             repository = new Repository().read();
         }
-        if(args.length == 0){
-            // TODO: what if args is empty?
 
-            return;
-        }
         String firstArg = args[0];
         switch(firstArg) {
             case "init":

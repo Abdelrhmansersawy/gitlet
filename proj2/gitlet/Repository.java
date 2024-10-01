@@ -72,8 +72,8 @@ public class Repository implements Serializable {
         stagingArea.rm(fileName);
     }
     public void commit(String message){
-        stagingArea.setHead(new Commit(stagingArea , stagingArea.getHead().getBranchName() ,message));
-        globalBranches.setBranchHead(stagingArea.getHead().getBranchName() , stagingArea.getHead().getCommitSHA()); // update branch head
+        stagingArea.setHead(new Commit(stagingArea , stagingArea.getCurrentBranch() ,message));
+        globalBranches.setBranchHead(stagingArea.getCurrentBranch() , stagingArea.getHead().getCommitSHA()); // update branch head
         globalLogs.add(new logs(stagingArea.getHead()));
         stagingArea.clear();
     }
@@ -104,7 +104,7 @@ public class Repository implements Serializable {
         }
     }
     public void status(){
-        globalBranches.print(stagingArea.getHead().getBranchName());
+        globalBranches.print(stagingArea.getCurrentBranch());
         stagingArea.print();
     }
     public void checkoutFile(String fileName){
@@ -134,25 +134,28 @@ public class Repository implements Serializable {
             System.out.println("No such branch exists.");
             return;
         }
-        if(Objects.equals(branchName, stagingArea.getHead().getBranchName())){
+        if(Objects.equals(branchName, stagingArea.getCurrentBranch())){
             System.out.println("No need to checkout the current branch.");
             return;
         }
-        Commit currentCommit = Commit.read(globalBranches.getBranchHead(branchName));
+        Commit givenBranchHeadCommit = Commit.read(globalBranches.getBranchHead(branchName));
         // check if all tracked blobs into currentCommit are tracked by the current head commit
-        for(String fileName : currentCommit.getBlobs().values()){
+        for(String fileName : givenBranchHeadCommit.getBlobs().values()){
             if(!stagingArea.getHead().isTracked(fileName)){
+                System.out.println(fileName);
                 System.out.println("There is an untracked file in the way; delete it, or add and commit it first.");
                 return;
             }
         }
-        for(Map.Entry<String, String> entry : currentCommit.getBlobs().entrySet()){
+        for(Map.Entry<String, String> entry : givenBranchHeadCommit.getBlobs().entrySet()){
             String fileName = entry.getKey();
-            Blob currentBlob = Blob.read(currentCommit.getBlobName(fileName) , "object");
+            Blob currentBlob = Blob.read(givenBranchHeadCommit.getBlobName(fileName) , "object");
             currentBlob.overWriteWorkingDirectory();
             stagingArea.unstage(fileName);
         }
         stagingArea.setHead(Commit.read(globalBranches.getBranchHead(branchName)));
+        stagingArea.setCurrentBranch(branchName);
+
         stagingArea.clear();
     }
     public void createNewBranch(String branchName){
@@ -160,14 +163,14 @@ public class Repository implements Serializable {
             System.out.println("A branch with that name already exists.");
             return;
         }
-        globalBranches.addNewBranch(branchName , globalBranches.getBranchHead("master"));
+        globalBranches.addNewBranch(branchName , stagingArea.getHead().getCommitSHA());
     }
     public void removeBranch(String branchName){
         if(!globalBranches.hasBranchWithName(branchName)){
             System.out.println("A branch with that name does not exist.");
             return;
         }
-        if(Objects.equals(branchName, stagingArea.getHead().getBranchName())){
+        if(Objects.equals(branchName, stagingArea.getCurrentBranch())){
             System.out.println("Cannot remove the current branch.");
             return;
         }
@@ -207,7 +210,7 @@ public class Repository implements Serializable {
             System.out.println("A branch with that name does not exist.");
             return;
         }
-        if(Objects.equals(stagingArea.getHead().getBranchName(), SecondBranch)){
+        if(Objects.equals(stagingArea.getCurrentBranch(), SecondBranch)){
             System.out.println("Cannot merge a branch with itself.");
             return;
         }
@@ -216,11 +219,11 @@ public class Repository implements Serializable {
                 return;
         }
 
-        String secondBranchHead = globalBranches.getBranchHead(SecondBranch);
-        String currentBranchHead = stagingArea.getHead().getBranchName();
-        Commit mergedCommit =new Commit (currentBranchHead , secondBranchHead);
+        String givenBranchHead = globalBranches.getBranchHead(SecondBranch);
+        String currentBranchHead = stagingArea.getCurrentBranch();
+        Commit mergedCommit = new Commit (currentBranchHead , givenBranchHead);
         stagingArea.setHead(mergedCommit);
-        globalBranches.setBranchHead(stagingArea.getHead().getBranchName() , stagingArea.getHead().getCommitSHA());
+        globalBranches.setBranchHead(stagingArea.getCurrentBranch() , stagingArea.getHead().getCommitSHA());
         globalLogs.add(new logs(stagingArea.getHead()));
         stagingArea.clear();
 

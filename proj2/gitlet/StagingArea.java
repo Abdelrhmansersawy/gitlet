@@ -6,6 +6,7 @@ import java.util.*;
 
 public class StagingArea implements Serializable {
     private Commit Head;
+    private String currentBranch;
     private Map<String , String> stagingForAdditional;
     private Map<String , String> stagingForRemoval;
     private List<String> modifiedStagedFiles;
@@ -16,19 +17,24 @@ public class StagingArea implements Serializable {
     public StagingArea(Commit Head){
         stagingForAdditional = new HashMap<>();
         stagingForRemoval = new HashMap<>();
+        modifiedStagedFiles = new ArrayList<>();
+        deletedStagedFiles = new ArrayList<>();
+        untrackedFiles = new ArrayList<>();
         CWD = FileSystem.getCWD();
+        currentBranch = Head.getBranchName();
         setHead(Head);
     }
     public void setHead(Commit Head){this.Head = Head;}
     public Commit getHead(){ return Head; }
-
+    public void setCurrentBranch(String branchName){ this.currentBranch = branchName; }
+    public String  getCurrentBranch(){ return this.currentBranch; }
 
     public void stage(String fileName , Blob B){
         if(stagingForAdditional.containsKey(fileName)){
             FileSystem.deleteFile(FileSystem.getFromGit(stagingForAdditional.get(fileName) , "stagingForAdditional"));
         }
         stagingForAdditional.put(fileName , B.getBlobName());
-        B.write("stagingForAddional");
+        B.write("stagingForAdditional");
     }
     public void unstage(String fileName){
         if(stagingForAdditional.containsKey(fileName)){
