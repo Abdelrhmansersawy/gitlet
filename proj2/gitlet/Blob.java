@@ -17,7 +17,7 @@ public class Blob  implements Serializable{
         /*
         Initialize a blob with specific path file
          */
-        this.content = FileSystem.readFile(absolutePath);
+        this.content = FileSystem.readContentFromFile(absolutePath);
         this.filePath = absolutePath;
         this.BlobName = getBlobSHA();
     }

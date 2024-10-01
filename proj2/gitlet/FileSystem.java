@@ -74,7 +74,7 @@ public class FileSystem implements Serializable {
         }
         return readObject(inFile, objectType);
     }
-    public static String readFile(String absolutePath){
+    public static String readContentFromFile(String absolutePath){
         return readContentsAsString(new File(absolutePath));
     }
     public static void deleteFile(String aboslutePath){
